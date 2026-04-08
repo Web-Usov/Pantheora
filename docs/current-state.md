@@ -1,6 +1,6 @@
 # Current State
 
-Дата фиксации: 2026-04-08
+Дата фиксации: 2026-04-09
 
 ## Резюме
 
@@ -14,7 +14,7 @@
 - [docs/current-state.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/current-state.md) — общий статус репозитория и структура экспериментов
 - [docs/paperclip-openclaw.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/paperclip-openclaw.md) — quickstart и техничка по текущему OpenClaw compose-стенду
 - [docs/runs/openclaw-gateway.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/runs/openclaw-gateway.md) — отдельная запись по попытке использовать `openclaw_gateway` как основной backend исполнения
-- [docs/runs/opencode.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/runs/opencode.md) — planned run для чистой попытки с `OpenCode`
+- [docs/runs/opencode.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/runs/opencode.md) — отдельная запись по чистой попытке с `OpenCode`
 
 ## Текущий статус по попыткам
 
@@ -28,6 +28,21 @@
 Подробности:
 
 - [docs/runs/openclaw-gateway.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/runs/openclaw-gateway.md)
+
+### Run 02. `OpenCode`
+
+Статус:
+
+- clean compose и отдельный data contour подтверждены
+- `Paperclip` onboarding для новой инстанции выполнен
+- `OpenCode` подключён через OAuth и виден из `Paperclip`
+- `opencode_local` видит `openai/*` модели и проходит environment test
+- CEO/CTO сценарий с делегацией и child execution подтверждён
+- остаётся workflow gap: parent issues могут зависать в `blocked` после approval и завершения дочерних задач
+
+Подробности:
+
+- [docs/runs/opencode.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/runs/opencode.md)
 
 ## Что считается общим baseline репозитория
 
@@ -51,21 +66,18 @@
 
 То есть следующий вариант не должен дописываться в запись про `openclaw_gateway`, если он исследует другую execution-модель.
 
-## Следующий planned run
+## Следующий фокус
 
-Следующая чистая попытка:
+Текущий активный фокус:
 
-- `OpenCode` как основной execution backend для `Paperclip`
+- продолжать `Run 02` с `OpenCode`, но уже не на уровне infra bootstrap, а на уровне orchestration behavior
 
-Важно:
+Практически это означает:
 
-- запускать его отдельно от первой попытки
-- не опираться на артефакты `openclaw_gateway` run
-- документировать результаты в новой отдельной run-доке
-
-Черновик этого run:
-
-- [docs/runs/opencode.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/runs/opencode.md)
+- не ломать clean compose run 02
+- не откатывать рабочую OAuth/model discovery связку между `Paperclip` и `OpenCode`
+- отдельно выяснить, почему parent issues остаются в `blocked` после `approval approved` и `child issue done`
+- после этого повторить более чистый smoke на минимальном local агенте без тяжёлой CEO persona
 
 ## Практический смысл этого файла
 
