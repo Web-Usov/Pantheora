@@ -1,0 +1,122 @@
+name: pantheora
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-paperclip}
+      POSTGRES_USER: ${POSTGRES_USER:-paperclip}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-paperclip}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-paperclip} -d ${POSTGRES_DB:-paperclip}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  paperclip:
+    image: ${PAPERCLIP_IMAGE:-ghcr.io/paperclipai/paperclip:latest}
+    entrypoint: ["sh", "-lc", "node /pantheora-config/paperclip/boot-patched-paperclip.mjs"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${PAPERCLIP_PORT:-3100}:3100"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-paperclip}:${POSTGRES_PASSWORD:-paperclip}@postgres:5432/${POSTGRES_DB:-paperclip}
+      HOST: 0.0.0.0
+      PORT: "3100"
+      SERVE_UI: "true"
+      PAPERCLIP_HOME: /paperclip
+      PAPERCLIP_DEPLOYMENT_MODE: ${PAPERCLIP_DEPLOYMENT_MODE:-authenticated}
+      PAPERCLIP_DEPLOYMENT_EXPOSURE: ${PAPERCLIP_DEPLOYMENT_EXPOSURE:-private}
+      PAPERCLIP_PUBLIC_URL: ${PAPERCLIP_PUBLIC_URL:-http://localhost:3100}
+      PAPERCLIP_ALLOWED_HOSTNAMES: ${PAPERCLIP_ALLOWED_HOSTNAMES:-localhost,127.0.0.1,paperclip,host.docker.internal}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      PAPERCLIP_OPENCLAW_DISABLE_STRUCTURED_PAYLOAD: ${PAPERCLIP_OPENCLAW_DISABLE_STRUCTURED_PAYLOAD:-true}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3100/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ./data/paperclip:/paperclip
+      - ./config/paperclip:/pantheora-config/paperclip:ro
+
+  openclaw-gateway:
+    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    restart: unless-stopped
+    depends_on:
+      paperclip:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
+      - "${OPENCLAW_BRIDGE_PORT:-18790}:18790"
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      TZ: ${OPENCLAW_TZ:-UTC}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:?OPENCLAW_GATEWAY_TOKEN must be set}
+      OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-1}
+    command:
+      [
+        "node",
+        "dist/index.js",
+        "gateway",
+        "--bind",
+        "${OPENCLAW_GATEWAY_BIND:-lan}",
+        "--port",
+        "18789",
+      ]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:18789/healthz').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    volumes:
+      - ./data/openclaw:/home/node/.openclaw
+
+  openclaw-cli:
+    image: ${OPENCLAW_IMAGE:-ghcr.io/openclaw/openclaw:latest}
+    depends_on:
+      openclaw-gateway:
+        condition: service_healthy
+    network_mode: "service:openclaw-gateway"
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    stdin_open: true
+    tty: true
+    init: true
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      TZ: ${OPENCLAW_TZ:-UTC}
+      BROWSER: echo
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:?OPENCLAW_GATEWAY_TOKEN must be set}
+      OPENCLAW_ALLOW_INSECURE_PRIVATE_WS: ${OPENCLAW_ALLOW_INSECURE_PRIVATE_WS:-1}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    entrypoint: ["node", "dist/index.js"]
+    volumes:
+      - ./data/openclaw:/home/node/.openclaw
