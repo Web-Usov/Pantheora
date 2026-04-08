@@ -16,6 +16,7 @@ Pantheora — where many agents become one intelligence.
 
 - [docs/current-state.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/current-state.md)
 - [docs/paperclip-openclaw.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/paperclip-openclaw.md)
+- [docs/runs/openclaw-gateway.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/runs/openclaw-gateway.md)
 
 ---
 

@@ -3,6 +3,9 @@
 Актуальный статус, выводы и ограничения этой интеграции зафиксированы отдельно в
 [docs/current-state.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/current-state.md).
 
+Отдельная запись именно по попытке использовать `openclaw_gateway` как основной execution backend лежит в
+[docs/runs/openclaw-gateway.md](/Users/alex/Documents/Develop/web-usov/Pantheora/docs/runs/openclaw-gateway.md).
+
 Этот стенд поднимает:
 
 - `paperclip` как UI/API-слой оркестрации
