@@ -1,0 +1,46 @@
+#!/bin/sh
+set -e
+INFRA_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$INFRA_DIR" || exit 1
+if [ ! -f .env ]; then
+  echo "нет файла .env в $INFRA_DIR" >&2
+  exit 1
+fi
+set -a
+. ./.env
+set +a
+if [ -z "${POSTGRES_PASSWORD+x}" ] || [ -z "$POSTGRES_PASSWORD" ]; then
+  echo "в .env нужен непустой POSTGRES_PASSWORD" >&2
+  exit 1
+fi
+if [ "$#" -ne 2 ]; then
+  echo "использование: $0 <username> <database>" >&2
+  exit 1
+fi
+username=$1
+database=$2
+case $username in
+  *[!a-zA-Z0-9_]*|'')
+    echo "username: только буквы, цифры и подчёркивание, не пустой" >&2
+    exit 1
+    ;;
+esac
+case $database in
+  *[!a-zA-Z0-9_]*|'')
+    echo "database: только буквы, цифры и подчёркивание, не пустой" >&2
+    exit 1
+    ;;
+esac
+run_psql() {
+  docker compose exec -T -e "PGPASSWORD=$POSTGRES_PASSWORD" postgres \
+    psql -v ON_ERROR_STOP=1 -h 127.0.0.1 --username usov --dbname usov "$@"
+}
+if [ "$(run_psql -tAc "SELECT 1 FROM pg_roles WHERE rolname = '$username'")" != "1" ]; then
+  echo "роль не найдена: $username" >&2
+  exit 1
+fi
+if [ "$(run_psql -tAc "SELECT 1 FROM pg_database WHERE datname = '$database'")" = "1" ]; then
+  echo "база уже существует: $database" >&2
+  exit 1
+fi
+run_psql -c "CREATE DATABASE $database OWNER $username;"
