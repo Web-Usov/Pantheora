@@ -1,0 +1,19 @@
+schema: "paperclip/v1"
+agents:
+  ceo:
+    role: "ceo"
+    adapter:
+      config:
+        dangerouslyBypassApprovalsAndSandbox: true
+        model: "gpt-5.3-codex"
+      type: "codex_local"
+    runtime:
+      heartbeat:
+        enabled: true
+        intervalSec: 36000
+        maxConcurrentRuns: 1
+    permissions:
+      canCreateAgents: true
+sidebar:
+  agents:
+    - "ceo"
