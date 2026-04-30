@@ -5,8 +5,6 @@ description: Universal OpenWrt operations skill. Use for audits, diagnostics, an
 
 # OpenWrt Universal Skill
 
-Use this skill for any OpenWrt task.
-
 ## Purpose
 
 - Provide a consistent workflow for OpenWrt diagnostics and operations.
@@ -66,4 +64,3 @@ Use this skill for any OpenWrt task.
 
 For concrete command playbooks and a `STATE.md` template, read:
 - [openwrt_playbooks.md](./references/openwrt_playbooks.md)
-

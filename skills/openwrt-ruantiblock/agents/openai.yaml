@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenWrt Ruantiblock Ops"
+  short_description: "Manage and troubleshoot ruantiblock on OpenWrt"
+  default_prompt: "Use $openwrt-ruantiblock to update bypass lists and validate ruantiblock status."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenWrt Router Ops"
+  short_description: "Operate and audit OpenWrt router environments"
+  default_prompt: "Use $openwrt to audit and update the current OpenWrt router state safely."
